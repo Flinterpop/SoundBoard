@@ -31,7 +31,7 @@ int main(void)
     const int screenWidth = 520;
     const int screenHeight = 520;
 
-    InitWindow(screenWidth, screenHeight, "raylib [audio] example - playing sound multiple times");
+    InitWindow(screenWidth, screenHeight, "Finley's Soundboard");
 
     InitAudioDevice();      // Initialize audio device
 
@@ -61,7 +61,7 @@ int main(void)
 
     Font customFont = LoadFontEx("resources/16020_FUTURAM.ttf", 64, NULL, 0);
     GuiSetFont(customFont);
-    GuiSetStyle(DEFAULT, TEXT_SIZE, 30);
+    GuiSetStyle(DEFAULT, TEXT_SIZE, 25);
 
 
 
