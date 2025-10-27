@@ -17,6 +17,12 @@
 
 #include "raygui.h"
 
+
+#if defined(WIN32) && !defined(_DEBUG)
+#pragma comment(linker, "/SUBSYSTEM:windows /ENTRY:mainCRTStartup")
+#endif
+
+
 #define MAX_SOUNDS 10
 Sound soundArray[MAX_SOUNDS] = { 0 };
 int currentSound;
