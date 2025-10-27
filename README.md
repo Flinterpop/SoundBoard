@@ -11,3 +11,9 @@ Uses Raylib and Raygui primarily for its awesome sound support.
 
 Ready to Run zip file
 https://github.com/Flinterpop/SoundBoard/blob/main/BinPackage/FinSoundBoard.zip
+
+
+## Sound Sources
+https://www.wavsource.com/stuff.htm
+https://pixabay.com/sound-effects/search/dance/?pagi=10
+
