@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.20...4.0.2)
 
 project(soundboard)
 
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 
 
 add_compile_options($<$<CXX_COMPILER_ID:MSVC>:/MP>)
@@ -34,8 +34,8 @@ FetchContent_MakeAvailable(raylib)
 
 # Our Project
 set(SOURCE_FILES
-	hasMain.c
-	raygui.h
+	src/hasMain.cpp
+	src/raygui.h
     )
  
  
