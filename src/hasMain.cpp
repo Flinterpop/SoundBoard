@@ -10,42 +10,21 @@
 #pragma comment(linker, "/SUBSYSTEM:windows /ENTRY:mainCRTStartup")
 #endif
 
+//external declarations
+std::vector<std::string> LoadSoundFileList();
+bool getFileNameNoExtension(const char* path, char* dest);
 
-#define MAX_SOUNDS 10
-Sound soundArray[MAX_SOUNDS] = { 0 };
-int currentSound;
 
 
-int buttonWidth = 95;
+int buttonWidth = 125;
 int buttonHeight = 95;
 
-
 const int BG_FONT_SIZE = 25;
-const char* labels[] = { "Music","Coin", "Spring","Weird","Boom" ,"Explosion","Laser", "Fanfare","cheer","boing" };
+//const char* labels[] = { "Music","Coin", "Spring","Weird","Boom" ,"Explosion","Laser", "Fanfare","cheer","boing" };
 
 std::vector<std::string> m_AudioFileList;
-
-
-
-
-/*
-bool LoadSoundFiles()
-{
-    if (GetFileAttributes(L"resources") == INVALID_FILE_ATTRIBUTES)
-    {
-        puts("Audio Directory (\"resources\") doesn't exist");
-        return true;
-    }
-
-    std::vector<std::string> fList = LoadFileNamesInFolder("wav", ".wav");
-
-    //if (m_AudioFileList.size() > 0) m_AudioFileList.clear();
-
-    return false;
-}
-*/
-
-
+std::vector<Sound> m_SoundsList;
+int NumSounds = 0;
 
 // Button control, returns true when clicked
 int bg_GuiButton(Rectangle bounds, const char* text, bool playing, int keyindex)
@@ -67,10 +46,8 @@ int bg_GuiButton(Rectangle bounds, const char* text, bool playing, int keyindex)
         }
     }
 
-    //GuiDrawRectangle(bounds, GuiGetStyle(BUTTON, BORDER_WIDTH), GetColor(GuiGetStyle(BUTTON, BORDER + (state * 3))), GetColor(GuiGetStyle(BUTTON, BASE + (state * 3))));
     if (playing) GuiDrawRectangle(bounds, GuiGetStyle(BUTTON, BORDER_WIDTH), BLACK, RED);
     else GuiDrawRectangle(bounds, GuiGetStyle(BUTTON, BORDER_WIDTH), BLACK, GREEN);
-
     
     Rectangle top = bounds;
     top.height = bounds.height / 2;
@@ -92,8 +69,8 @@ int bg_GuiButton(Rectangle bounds, const char* text, bool playing, int keyindex)
 
 void SoundButton(char * label, int x, int y, int soundIndex)
 {
-    bool playing = IsSoundPlaying(soundArray[soundIndex]);
-
+    bool playing = IsSoundPlaying(m_SoundsList[soundIndex]);
+    Rectangle r;
     r.x = x;
     r.y = y;
     r.width = buttonWidth;
@@ -101,8 +78,8 @@ void SoundButton(char * label, int x, int y, int soundIndex)
 
     if (bg_GuiButton(r, label,playing, soundIndex+1))
     {
-        if (playing) StopSound(soundArray[soundIndex]);
-        else PlaySound(soundArray[soundIndex]);
+        if (playing) StopSound(m_SoundsList[soundIndex]);
+        else PlaySound(m_SoundsList[soundIndex]);
     }
 }
 
@@ -110,50 +87,30 @@ void SoundButton(char * label, int x, int y, int soundIndex)
 KeyboardKey keyList[10] = {KEY_ONE,KEY_TWO, KEY_THREE,KEY_FOUR,KEY_FIVE, KEY_SIX, KEY_SEVEN, KEY_EIGHT, KEY_NINE, KEY_ZERO};
 
 
-//------------------------------------------------------------------------------------
-// Program main entry point
-//------------------------------------------------------------------------------------
 int main(void)
 {
-    // Initialization
-    //--------------------------------------------------------------------------------------
-    const int screenWidth = 520;
-    const int screenHeight = 520;
-
-    InitWindow(screenWidth, screenHeight, "Finley's Soundboard");
-
     InitAudioDevice();      // Initialize audio device
 
-    // load the sound list
-    soundArray[0] = LoadSound("resources/musicdance.wav");         // Load WAV audio file into the first slot as the 'source' sound
-    soundArray[1] = LoadSound("resources/coin.wav");         // Load WAV audio file into the first slot as the 'source' sound
-    soundArray[2] = LoadSound("resources/spring.wav");         // Load WAV audio file into the first slot as the 'source' sound
-    soundArray[3] = LoadSound("resources/weird.wav");         // Load WAV audio file into the first slot as the 'source' sound
-    soundArray[4] = LoadSound("resources/boom.wav");         // Load WAV audio file into the first slot as the 'source' sound
-    soundArray[5] = LoadSound("resources/explosion.wav");         // Load WAV audio file into the first slot as the 'source' sound
-    soundArray[6] = LoadSound("resources/laser.wav");         // Load WAV audio file into the first slot as the 'source' sound
-    soundArray[7] = LoadSound("resources/fanfare2.wav");         // Load WAV audio file into the first slot as the 'source' sound
-    soundArray[8] = LoadSound("resources/cheering.wav");         // Load WAV audio file into the first slot as the 'source' sound
-    soundArray[9] = LoadSound("resources/boing2.wav");         // Load WAV audio file into the first slot as the 'source' sound
-
-    
-    // this sound owns the sample data
-    for (int i = 1; i < MAX_SOUNDS; i++)
+    m_AudioFileList = LoadSoundFileList();
+    for (auto& sn : m_AudioFileList)
     {
-        soundArray[i] = LoadSoundAlias(soundArray[i]);        // Load an alias of the sound into slots 1-9. These do not own the sound data, but can be played
+        Sound s = LoadSound(sn.c_str());
+        m_SoundsList.push_back(s);
     }
-    currentSound = 0;                                         // set the sound list to the start
 
-    bool showMessageBox = false;
+    NumSounds = m_SoundsList.size();
+
+    int NumRows = 1 + NumSounds / 5;
+    const int screenWidth = 10 + (buttonWidth + 5) * 5;
+    const int screenHeight = 10 + (5+ buttonHeight)*  NumRows;
+
+    InitWindow(screenWidth, screenHeight, "Finley's Soundboard");
 
 
 
     Font customFont = LoadFontEx("resources/16020_FUTURAM.ttf", 64, NULL, 0);
     GuiSetFont(customFont);
     GuiSetStyle(DEFAULT, TEXT_SIZE, BG_FONT_SIZE);
-
-
-
 
 
     SetTargetFPS(60);               // Set our game to run at 60 frames-per-second
@@ -164,11 +121,11 @@ int main(void)
     {
 
         // Update
-        for (int x=0;x<10;x++)
+        for (int x=0;x< NumSounds;x++)
             if (IsKeyPressed(keyList[x]))
             {
-                if (IsSoundPlaying(soundArray[x])) StopSound(soundArray[x]);
-                else PlaySound(soundArray[x]);            
+                if (IsSoundPlaying(m_SoundsList[x])) StopSound(m_SoundsList[x]);
+                else PlaySound(m_SoundsList[x]);
             }
 
         // Draw
@@ -177,11 +134,15 @@ int main(void)
 
             ClearBackground(RAYWHITE);
 
-            for (int x=0;x< 10;x++)
+            for (int x=0;x< NumSounds;x++)
             {
                 int row = x % 5;
                 int col = x / 5;
-                SoundButton((char *)labels[x], 10 + row *100, 10 + col * 100, x);
+                //SoundButton((char *)labels[x%10], 10 + row *100, 10 + col * 100, x);
+                char fname[300];
+                getFileNameNoExtension((const char*)m_AudioFileList[x].c_str(), fname);
+
+                SoundButton(fname, 10 + row * (buttonWidth +5), 10 + col * (buttonHeight+5), x);
             }
 
 
@@ -190,10 +151,11 @@ int main(void)
         EndDrawing();
     }
 
-    for (int i = 1; i < MAX_SOUNDS; i++)
-        UnloadSoundAlias(soundArray[i]);     // Unload sound aliases
 
-    UnloadSound(soundArray[0]);              // Unload source sound data
+    for (auto &sn : m_SoundsList)
+    {
+        UnloadSound(sn);              // Unload source sound data
+    }
 
     UnloadFont(customFont); // Unload the font
 

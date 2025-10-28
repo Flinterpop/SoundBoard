@@ -4,6 +4,11 @@ project(soundboard)
 
 set(CMAKE_CXX_STANDARD 17)
 
+set(WINDOWKIT_VERSION 10) # folder folder version
+set(WINDOWKIT_VERSION_UPDATE 10.0.19041.0) # sub folder folder version
+set(WINDOW_BIT x64) # arm, arm64, x64, x86
+
+add_definitions(-DUNICODE -D_UNICODE)
 
 add_compile_options($<$<CXX_COMPILER_ID:MSVC>:/MP>)
 
@@ -36,9 +41,18 @@ FetchContent_MakeAvailable(raylib)
 set(SOURCE_FILES
 	src/hasMain.cpp
 	src/raygui.h
+    src/util.h
     )
  
  
+    
+#this organizes the VS project folder like the source tree folder
+foreach(source IN LISTS source_list)
+    get_filename_component(source_path "${source}" PATH)
+    string(REPLACE "/" "\\" source_path_msvc "${source_path}")
+    source_group("${source_path_msvc}" FILES "${source}")
+endforeach()
+
  
 add_executable(${PROJECT_NAME} 
   ${CPP_HEADER_FILES}
