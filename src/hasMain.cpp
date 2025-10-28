@@ -16,7 +16,7 @@ bool getFileNameNoExtension(const char* path, char* dest);
 
 
 
-int buttonWidth = 125;
+int buttonWidth = 150;
 int buttonHeight = 95;
 
 const int BG_FONT_SIZE = 25;
@@ -25,6 +25,13 @@ const int BG_FONT_SIZE = 25;
 std::vector<std::string> m_AudioFileList;
 std::vector<Sound> m_SoundsList;
 int NumSounds = 0;
+
+int getKeyCode(int x)
+{
+    if (x < 9) return x + 49;
+    if (x >= 9) return 65 - 9 + x;
+    else return 0;
+}
 
 // Button control, returns true when clicked
 int bg_GuiButton(Rectangle bounds, const char* text, bool playing, int keyindex)
@@ -57,7 +64,7 @@ int bg_GuiButton(Rectangle bounds, const char* text, bool playing, int keyindex)
     GuiDrawText(text, GetTextBounds(BUTTON, top), GuiGetStyle(BUTTON, TEXT_ALIGNMENT), BLACK);
     
     char buf[20];
-    sprintf(buf, "%d", keyindex%10);
+    sprintf(buf, "%c", getKeyCode(keyindex));
     GuiDrawText(buf, GetTextBounds(BUTTON, bottom), GuiGetStyle(BUTTON, TEXT_ALIGNMENT), GetColor(GuiGetStyle(BUTTON, TEXT + (state * 3))));
 
 
@@ -76,15 +83,12 @@ void SoundButton(char * label, int x, int y, int soundIndex)
     r.width = buttonWidth;
     r.height = buttonHeight;
 
-    if (bg_GuiButton(r, label,playing, soundIndex+1))
+    if (bg_GuiButton(r, label,playing, soundIndex))
     {
         if (playing) StopSound(m_SoundsList[soundIndex]);
         else PlaySound(m_SoundsList[soundIndex]);
     }
 }
-
-
-KeyboardKey keyList[10] = {KEY_ONE,KEY_TWO, KEY_THREE,KEY_FOUR,KEY_FIVE, KEY_SIX, KEY_SEVEN, KEY_EIGHT, KEY_NINE, KEY_ZERO};
 
 
 int main(void)
@@ -100,7 +104,9 @@ int main(void)
 
     NumSounds = m_SoundsList.size();
 
-    int NumRows = 1 + NumSounds / 5;
+    int NumRows = NumSounds / 5;
+    if ((NumSounds % 5) > 0) ++NumRows;
+
     const int screenWidth = 10 + (buttonWidth + 5) * 5;
     const int screenHeight = 10 + (5+ buttonHeight)*  NumRows;
 
@@ -122,7 +128,7 @@ int main(void)
 
         // Update
         for (int x=0;x< NumSounds;x++)
-            if (IsKeyPressed(keyList[x]))
+            if (IsKeyPressed(getKeyCode(x))) 
             {
                 if (IsSoundPlaying(m_SoundsList[x])) StopSound(m_SoundsList[x]);
                 else PlaySound(m_SoundsList[x]);
